@@ -1,0 +1,23 @@
+# Composer dependencies
+/vendor/
+
+# Logs and runtime files
+*.log
+*.cache
+*.tmp
+*.temp
+
+# IDE / Editor
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+
+# System files
+.DS_Store
+Thumbs.db
+
+# Data files (generated during testing/usage)
+data/
+*.dat
+*.bin

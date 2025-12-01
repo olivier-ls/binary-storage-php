@@ -1,0 +1,21 @@
+{
+    "name": "olivier-ls/binary-storage-php",
+    "description": "A high-performance binary storage system for PHP, reducing disk overhead and I/O operations",
+    "type": "library",
+    "license": "MIT",
+    "keywords": ["binary", "storage", "cache", "performance", "trie", "indexing"],
+    "authors": [
+        {
+            "name": "Olivier-LS"
+        }
+    ],
+    "require": {
+        "php": ">=8.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "OlivierLS\\BinaryStorage\\": "src/"
+        }
+    },
+    "minimum-stability": "stable"
+}
