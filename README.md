@@ -21,7 +21,7 @@ composer require olivier-ls/binary-storage
 
 ## Quick Start
 
-
+```php
 use BinaryStorage\BinaryStorage;
 
 $store = new BinaryStorage(__DIR__ . '/data');
@@ -39,6 +39,8 @@ $product = $store->get('products', 'product_123');
 
 // Close storage
 $store->close('products');
+
+```
 
 ## Features
 
