@@ -22,8 +22,6 @@ composer require olivier-ls/binary-storage
 ## Quick Start
 
 ```php
-use BinaryStorage\BinaryStorage;
-
 $store = new BinaryStorage(__DIR__ . '/data');
 
 // Open a storage file
