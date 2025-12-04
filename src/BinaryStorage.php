@@ -5,12 +5,14 @@ namespace OlivierLS\BinaryStorage;
 /**
  * Nœud de l'arbre Trie pour l'indexation des clés
  */
-class TrieNode {
+class TrieNode
+{
     public array $children = [];
     public array $keys = [];  // Clés complètes qui passent par ce nœud
 }
 
-class BinaryStorage {
+class BinaryStorage
+{
 
     private array $handles = [];  // ['name' => ['index' => [...], 'fh' => resource, 'trie' => TrieNode]]
     private string $basePath;
@@ -18,6 +20,11 @@ class BinaryStorage {
     public function __construct(string $basePath)
     {
         $this->basePath = rtrim($basePath, '/');
+    }
+
+    public function __destruct()
+    {
+        $this->closeAll();
     }
 
     public function open(string $name): void
@@ -425,6 +432,9 @@ class BinaryStorage {
         ];
     }
 
+    /**
+     * Ferme le handle spécifié
+     */
     public function close(string $name): void
     {
         if (!isset($this->handles[$name])) return;
@@ -433,10 +443,43 @@ class BinaryStorage {
         unset($this->handles[$name]);
     }
 
+    /**
+     * Ferme tous les handles
+     */
     public function closeAll(): void
     {
         foreach (array_keys($this->handles) as $name) {
             $this->close($name);
         }
+    }
+
+    /**
+     * Renvoie les statistiques sur l'élément spécifié
+     */
+    public function stats(string $name): array
+    {
+        if (!isset($this->handles[$name])) {
+            throw new RuntimeException("Le cache '$name' n'est pas ouvert");
+        }
+
+        $h = $this->handles[$name];
+        $dataSize = filesize($h['dataFile']);
+        $indexSize = filesize($h['indexFile']);
+        $keyCount = count($h['index']);
+
+        // Calculer la fragmentation
+        $usedSpace = array_sum(array_column($h['index'], 'length'));
+        $fragmentation = $dataSize > 0
+            ? round((1 - $usedSpace / $dataSize) * 100, 2)
+            : 0;
+
+        return [
+            'keys' => $keyCount,
+            'data_size' => $dataSize,
+            'index_size' => $indexSize,
+            'total_size' => $dataSize + $indexSize,
+            'fragmentation_percent' => $fragmentation,
+            'avg_value_size' => $keyCount > 0 ? round($usedSpace / $keyCount) : 0,
+        ];
     }
 }

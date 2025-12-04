@@ -32,4 +32,8 @@ echo "Found " . count($allProducts) . " products\n";
 $stats = $store->compact('products');
 echo "Saved {$stats['saved_percent']}% disk space\n";
 
+echo '<pre>';
+print_r($store->stats('products'));
+echo '</pre>';
+
 $store->close('products');
