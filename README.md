@@ -1,5 +1,8 @@
 # BinaryStorage
 
+![License](https://img.shields.io/badge/License-MIT-yellow.svg)
+![PHP](https://img.shields.io/badge/PHP-8.0%2B-777BB4?logo=php&logoColor=white)
+
 > A high-performance binary storage system for PHP, reducing disk overhead and I/O operations
 
 ## The Problem
