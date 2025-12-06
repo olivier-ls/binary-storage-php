@@ -1,5 +1,8 @@
 # BinaryStorage
 
+![License](https://img.shields.io/badge/License-MIT-yellow.svg)
+![PHP](https://img.shields.io/badge/PHP-8.0%2B-777BB4?logo=php&logoColor=white)
+
 > A high-performance binary storage system for PHP, reducing disk overhead and I/O operations
 
 ## The Problem
@@ -28,15 +31,53 @@ $store = new BinaryStorage(__DIR__ . '/data');
 $store->open('products');
 
 // Write data
-$store->set('products', 'product_456', [
-    'name' => 'iPhone'
+$store->set('products', 'product_124', [
+    'name' => 'MacBook Pro',
+    'price' => 2499.99,
+    'stock' => 42
 ]);
+
+$store->set('products', 'product_456', ['name' => 'iPhone']);
+$store->set('products', 'product_789', ['name' => 'iPad']);
 
 // Read data
 $product = $store->get('products', 'product_123');
 
+// Search with startsWith
+$allProducts = $store->startsWith('products', 'product_');
+echo "Found " . count($allProducts) . " products\n";
+
+// Search with contains
+$allProducts = $store->contains('products', ['product_']);
+echo "Found " . count($allProducts) . " products\n";
+
+// Compact the file data
+$stats = $store->compact('products');
+echo "Saved {$stats['saved_percent']}% disk space\n"; // Saved 50% disk space
+
+// Stats
+echo '<pre>';
+print_r($store->stats('products'));
+echo '</pre>';
+
+/*
+Array
+(
+    [keys] => 3
+    [data_size] => 133
+    [index_size] => 93
+    [total_size] => 226
+    [fragmentation_percent] => 0
+    [avg_value_size] => 44
+)
+*/
+
 // Close storage
 $store->close('products');
+// Or $store->closeAll();
+
+// Delete data
+$store->delete('products', 'product_789');
 
 ```
 
