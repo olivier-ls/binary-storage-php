@@ -83,7 +83,7 @@ $store->close('products');
 | **delete(string $store, string $key)** | Deletes a value by key. | `$store->delete('products', 'p123');` |
 | **exists(string $store, string $key)** | Checks whether a key exists. | `if ($store->exists('products', 'p123')) { ... }` |
 | **startsWith(string $store, string $prefix)** | Returns all values where the key starts with a prefix. | `$list = $store->startsWith('products', 'p1');` |
-| **contains(string $store, array|string $patterns)** | Returns all values where the key contains one or more substrings. | `$list = $store->contains('products', ['12']);` |
+| **contains(string $store, array $patterns)** | Returns all values where the key contains one or more substrings. | `$list = $store->contains('products', ['12']);` |
 | **stats(string $store)** | Returns file statistics (sizes, fragmentation, counts). | `$info = $store->stats('products');` |
 | **compact(string $store)** | Rebuilds the file and removes fragmentation. | `$saved = $store->compact('products');` |
 | **deleteCache(string $store)** | Deletes both the data and index files for a store. | `$store->deleteCache('products');` |
