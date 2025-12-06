@@ -25,60 +25,56 @@ composer require olivier-ls/binary-storage
 ## Quick Start
 
 ```php
+require '../src/BinaryStorage.php';
+
+use OlivierLS\BinaryStorage\BinaryStorage;
+use OlivierLS\BinaryStorage\TrieNode;
+
 $store = new BinaryStorage(__DIR__ . '/data');
 
-// Open a storage file
-$store->open('products');
+// Open a cache
+$store->open('products')
+    ->set('products', 'product_123', [
+        'name' => 'MacBook Pro',
+        'price' => 2499.99,
+        'stock' => 42
+    ])
+    ->set('products', 'product_456', ['name' => 'iPhone'])
+    ->set('products', 'product_789', ['name' => 'iPad']);
 
-// Write data
-$store->set('products', 'product_124', [
-    'name' => 'MacBook Pro',
-    'price' => 2499.99,
-    'stock' => 42
-]);
+$store->set('products', 'product_abc', ['id' => 1024]);
+$store->set('products', 'product_bcd', ['id' => 1025]);
 
-$store->set('products', 'product_456', ['name' => 'iPhone']);
-$store->set('products', 'product_789', ['name' => 'iPad']);
+// Save the index
+$store->saveIndex('products');
 
-// Read data
-$product = $store->get('products', 'product_123');
+// Retrieve data
+$productData = $store->get('products', 'product_123');
+echo '<pre>';
+print_r($productData);
+echo '</pre>';
 
-// Search with startsWith
+// Prefix search (ultra-fast with the Trie)
 $allProducts = $store->startsWith('products', 'product_');
-echo "Found " . count($allProducts) . " products\n";
+echo "Found " . count($allProducts) . " products<br>";
 
-// Search with contains
-$allProducts = $store->contains('products', ['product_']);
-echo "Found " . count($allProducts) . " products\n";
+// Search keys containing a substring
+$allProducts = $store->contains('products', ['bc']);
+echo "Found " . count($allProducts) . " products<br>";
 
-// Compact the file data
+// Compact to save disk space
 $stats = $store->compact('products');
-echo "Saved {$stats['saved_percent']}% disk space\n"; // Saved 50% disk space
+echo "Saved {$stats['saved_percent']}% disk space<br>";
 
-// Stats
 echo '<pre>';
 print_r($store->stats('products'));
 echo '</pre>';
 
-/*
-Array
-(
-    [keys] => 3
-    [data_size] => 133
-    [index_size] => 93
-    [total_size] => 226
-    [fragmentation_percent] => 0
-    [avg_value_size] => 44
-)
-*/
-
-// Close storage
+// Close the cache
 $store->close('products');
-// Or $store->closeAll();
 
-// Delete data
-$store->delete('products', 'product_789');
-
+// Delete the cache
+$store->deleteCache('products');
 ```
 
 ## Features
