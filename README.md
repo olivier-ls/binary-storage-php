@@ -51,9 +51,6 @@ echo "Found " . count($allProducts) . " products\n";
 $allProducts = $store->contains('products', ['product_']);
 echo "Found " . count($allProducts) . " products\n";
 
-// Delete data
-$store->delete('products', 'product_789');
-
 // Compact the file data
 $stats = $store->compact('products');
 echo "Saved {$stats['saved_percent']}% disk space\n"; // Saved 50% disk space
@@ -78,6 +75,9 @@ Array
 // Close storage
 $store->close('products');
 // Or $store->closeAll();
+
+// Delete data
+$store->delete('products', 'product_789');
 
 ```
 
