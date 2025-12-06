@@ -8,32 +8,44 @@ use OlivierLS\BinaryStorage\TrieNode;
 $store = new BinaryStorage(__DIR__ . '/data');
 
 // Ouvrir un cache
-$store->open('products');
+$store->open('products')
+    ->set('products', 'product_123', [
+        'name' => 'MacBook Pro',
+        'price' => 2499.99,
+        'stock' => 42
+    ])
+    ->set('products', 'product_456', ['name' => 'iPhone'])
+    ->set('products', 'product_789', ['name' => 'iPad']);
 
-// Stocker des données
-$store->set('products', 'product_123', [
-    'name' => 'MacBook Pro',
-    'price' => 2499.99,
-    'stock' => 42
-]);
+$store->set('products', 'product_abc', ['id' => 1024]);
+$store->set('products', 'product_bcd', ['id' => 1025]);
+
+// Sauvegarde
+$store->saveIndex('products');
 
 // Récupérer
-$product = $store->get('products', 'product_123');
-var_dump($product);
+$productData = $store->get('products', 'product_123');
+echo '<pre>';
+print_r($productData);
+echo '</pre>';
 
 // Recherche par préfixe (ultra-rapide avec le Trie)
-$store->set('products', 'product_456', ['name' => 'iPhone']);
-$store->set('products', 'product_789', ['name' => 'iPad']);
-
 $allProducts = $store->startsWith('products', 'product_');
-echo "Found " . count($allProducts) . " products\n";
+echo "Found " . count($allProducts) . " products<br>";
+
+// Recherche dans les clés avec contains
+$allProducts = $store->contains('products', ['bc']);
+echo "Found " . count($allProducts) . " products<br>";
 
 // Compacter pour récupérer l'espace
 $stats = $store->compact('products');
-echo "Saved {$stats['saved_percent']}% disk space\n";
+echo "Saved {$stats['saved_percent']}% disk space<br>";
 
 echo '<pre>';
 print_r($store->stats('products'));
 echo '</pre>';
 
 $store->close('products');
+
+// Supprimer l'élément
+$store->deleteCache('products');

@@ -27,7 +27,7 @@ class BinaryStorage
         $this->closeAll();
     }
 
-    public function open(string $name): void
+    public function open(string $name): self
     {
         $indexFile = "{$this->basePath}/{$name}.bin";
         $dataFile  = "{$this->basePath}/{$name}.dat";
@@ -70,6 +70,8 @@ class BinaryStorage
             'fh' => $fh,
             'trie' => $trie,
         ];
+
+        return $this;
     }
 
     /**
@@ -137,7 +139,10 @@ class BinaryStorage
         return array_values(array_unique($node->keys));
     }
 
-    public function set(string $name, string $key, mixed $value): void
+    /**
+     * Ajout d'un élément dans le cache
+     */
+    public function set(string $name, string $key, mixed $value): self
     {
         if (!isset($this->handles[$name])) {
             throw new RuntimeException("Le cache '$name' n'est pas ouvert");
@@ -159,6 +164,8 @@ class BinaryStorage
         if ($isNewKey) {
             $this->insertInTrie($h['trie'], $key);
         }
+
+        return $this;
     }
 
     public function get(string $name, string $key): mixed
@@ -239,6 +246,7 @@ class BinaryStorage
         foreach ($this->handles[$name]['index'] as $key => $meta) {
             $matches = true;
             foreach ($patterns as $pattern) {
+
                 if (!str_contains($key, $pattern)) {
                     $matches = false;
                     break;
