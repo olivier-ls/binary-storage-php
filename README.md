@@ -77,6 +77,7 @@ $store->close('products');
 | **close(string $store)** | Closes a storage file. | `$store->close('products');` |
 | **closeAll()** | Closes all opened storage files. | `$store->closeAll();` |
 | **set(string $store, string $key, mixed $value)** | Stores a value for a key (serialized automatically). | `$store->set('products', 'p123', $data);` |
+| **setMultiple(string $store, array $items)** | Stores multiple values. | `$store->setMultiple('products', ['key' => 'value', ...])` |
 | **saveIndex(string $store)** | Persists the in-memory index to disk (important after many writes). | `$store->saveIndex('products');` |
 | **get(string $store, string $key)** | Retrieves a value by key. Returns `null` if the key doesn't exist. | `$product = $store->get('products', 'p123');` |
 | **getAllKeys(string $store)** | Returns all keys. | `$keys = $store->getAllKeys('products');` |

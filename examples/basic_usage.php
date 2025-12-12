@@ -20,11 +20,28 @@ $store->open('products')
 $store->set('products', 'product_abc', ['id' => 1024]);
 $store->set('products', 'product_bcd', ['id' => 1025]);
 
+$store->setMultiple('products', [
+    'product_efg' => 'test...123',
+    'product_hij' => [
+        'ref' => 'ref123',
+        'name' => 'Black t-shirt',
+        'option' => [
+            'color' => 'black',
+            'size' => 'xl'
+        ]
+    ]
+]);
+
 // Sauvegarde
 $store->saveIndex('products');
 
 // Récupérer
 $productData = $store->get('products', 'product_123');
+echo '<pre>';
+print_r($productData);
+echo '</pre>';
+
+$productData = $store->get('products', 'product_hij');
 echo '<pre>';
 print_r($productData);
 echo '</pre>';

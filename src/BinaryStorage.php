@@ -179,6 +179,14 @@ class BinaryStorage
         return $this;
     }
 
+    public function setMultiple(string $name, array $items): self{
+        
+        foreach ($items as $key => $value) {
+            $this->set($name, $key, $value);
+        }
+        return $this;
+    }
+
     public function get(string $name, string $key): mixed
     {
         if (!isset($this->handles[$name])) {
