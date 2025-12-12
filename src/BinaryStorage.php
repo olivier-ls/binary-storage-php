@@ -149,20 +149,31 @@ class BinaryStorage
         }
 
         $h = &$this->handles[$name];
-        $data = serialize($value);
-        $offset = fstat($h['fh'])['size'];
-        $length = strlen($data);
 
-        fseek($h['fh'], 0, SEEK_END);
-        fwrite($h['fh'], $data);
+        // Acquérir un verrou exclusif
+        if (!flock($h['fh'], LOCK_EX)) {
+            throw new RuntimeException("Impossible d'obtenir le verrou");
+        }
 
-        // Mettre à jour l'index
-        $isNewKey = !isset($h['index'][$key]);
-        $h['index'][$key] = ['offset' => $offset, 'length' => $length];
+        try {
+            $data = serialize($value);
+            $offset = fstat($h['fh'])['size'];
+            $length = strlen($data);
 
-        // Mettre à jour le Trie seulement si c'est une nouvelle clé
-        if ($isNewKey) {
-            $this->insertInTrie($h['trie'], $key);
+            fseek($h['fh'], 0, SEEK_END);
+            fwrite($h['fh'], $data);
+
+            // Mettre à jour l'index
+            $isNewKey = !isset($h['index'][$key]);
+            $h['index'][$key] = ['offset' => $offset, 'length' => $length];
+
+            // Mettre à jour le Trie seulement si c'est une nouvelle clé
+            if ($isNewKey) {
+                $this->insertInTrie($h['trie'], $key);
+            }
+        } finally {
+            // Libérer le verrou
+            flock($h['fh'], LOCK_UN);
         }
 
         return $this;
