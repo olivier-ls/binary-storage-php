@@ -3,11 +3,11 @@
 require '../src/BinaryStorage.php';
 
 use OlivierLS\BinaryStorage\BinaryStorage;
-use OlivierLS\BinaryStorage\TrieNode;
 
+// Initialize store manager
 $store = new BinaryStorage(__DIR__ . '/data');
 
-// Ouvrir un cache
+// Open a store and add entries
 $store->open('products')
     ->set('products', 'product_123', [
         'name' => 'MacBook Pro',
@@ -17,9 +17,14 @@ $store->open('products')
     ->set('products', 'product_456', ['name' => 'iPhone'])
     ->set('products', 'product_789', ['name' => 'iPad']);
 
+// Set more entries individually
 $store->set('products', 'product_abc', ['id' => 1024]);
 $store->set('products', 'product_bcd', ['id' => 1025]);
 
+// Set a single entry with a TTL of 3600 seconds (1 hour)
+$store->set('products', 'product_klm', ['id' => 1026], 3600);
+
+// Set multiple entries at once
 $store->setMultiple('products', [
     'product_efg' => 'test...123',
     'product_hij' => [
@@ -32,10 +37,10 @@ $store->setMultiple('products', [
     ]
 ]);
 
-// Sauvegarde
+// Save index to disk
 $store->saveIndex('products');
 
-// Récupérer
+// Retrieve entries
 $productData = $store->get('products', 'product_123');
 echo '<pre>';
 print_r($productData);
@@ -46,23 +51,25 @@ echo '<pre>';
 print_r($productData);
 echo '</pre>';
 
-// Recherche par préfixe (ultra-rapide avec le Trie)
+// Search by prefix
 $allProducts = $store->startsWith('products', 'product_');
 echo "Found " . count($allProducts) . " products<br>";
 
-// Recherche dans les clés avec contains
+// Search keys containing substring
 $allProducts = $store->contains('products', ['bc']);
 echo "Found " . count($allProducts) . " products<br>";
 
-// Compacter pour récupérer l'espace
+// Compact the store to reclaim space
 $stats = $store->compact('products');
 echo "Saved {$stats['saved_percent']}% disk space<br>";
 
+// Show store statistics
 echo '<pre>';
 print_r($store->stats('products'));
 echo '</pre>';
 
+// Close the store
 $store->close('products');
 
-// Supprimer l'élément
-$store->deleteCache('products');
+// Delete the entire store
+//$store->deleteCache('products');

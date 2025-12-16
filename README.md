@@ -76,7 +76,7 @@ $store->close('products');
 | **open(string $store)** | Opens (or creates) a storage file. Must be called before reading/writing. | `$store->open('products');` |
 | **close(string $store)** | Closes a storage file. | `$store->close('products');` |
 | **closeAll()** | Closes all opened storage files. | `$store->closeAll();` |
-| **set(string $store, string $key, mixed $value)** | Stores a value for a key (serialized automatically). | `$store->set('products', 'p123', $data);` |
+| **set(string $store, string $key, mixed $value, ?int $ttl)** | Stores a value for a key (serialized automatically). | `$store->set('products', 'p123', $data, 3600);` |
 | **setMultiple(string $store, array $items)** | Stores multiple values. | `$store->setMultiple('products', ['key' => 'value', ...])` |
 | **saveIndex(string $store)** | Persists the in-memory index to disk (important after many writes). | `$store->saveIndex('products');` |
 | **get(string $store, string $key)** | Retrieves a value by key. Returns `null` if the key doesn't exist. | `$product = $store->get('products', 'p123');` |
@@ -88,6 +88,8 @@ $store->close('products');
 | **stats(string $store)** | Returns file statistics (sizes, fragmentation, counts). | `$info = $store->stats('products');` |
 | **compact(string $store)** | Rebuilds the file and removes fragmentation. | `$saved = $store->compact('products');` |
 | **deleteCache(string $store)** | Deletes both the data and index files for a store. | `$store->deleteCache('products');` |
+
+* `$ttl` (optional) – Time-to-live in seconds. If provided, the entry will expire automatically after this time.
 
 ## 🧰 When to use it
 
