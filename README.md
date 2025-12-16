@@ -25,7 +25,7 @@ It is not a replacement for a database, but fits well for caches, catalogs, and 
 
 ## 📦 Installation
 
-composer require olivier-ls/binary-storage
+composer require olivier-ls/binary-storage-php
 
 ## 🚀 Basic Usage
 
