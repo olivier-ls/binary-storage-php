@@ -129,6 +129,10 @@ class BinaryStorage
     public function set(string $name, string $key, mixed $value, ?int $ttl = null): self
     {
 
+        if ($key === null || $key === '') {
+            throw new \InvalidArgumentException("Key cannot be null or empty");
+        }
+
         if (!isset($this->handles[$name])) {
             throw new RuntimeException("Store '$name' is not open");
         }
@@ -232,6 +236,10 @@ class BinaryStorage
      */
     public function get(string $name, string $key): mixed
     {
+        if ($key === null || $key === '') {
+            throw new \InvalidArgumentException("Key cannot be null or empty");
+        }
+
         if (!isset($this->handles[$name])) {
             throw new RuntimeException("Store '$name' is not open");
         }
@@ -454,6 +462,10 @@ class BinaryStorage
      */
     public function delete(string $name, string $key): bool
     {
+        if ($key === null || $key === '') {
+            throw new \InvalidArgumentException("Key cannot be null or empty");
+        }
+
         if (!isset($this->handles[$name])) {
             throw new RuntimeException("Store '$name' is not open");
         }
@@ -529,69 +541,81 @@ class BinaryStorage
 
         $h = &$this->handles[$name];
 
-        // Mesurer la taille avant
-        $oldSize = filesize($h['dataFile']);
-
-        // Créer un fichier temporaire
-        $tempFile = $h['dataFile'] . '.tmp';
-        $tempFh = fopen($tempFile, 'wb');
-        if (!$tempFh) {
-            throw new RuntimeException("Unable to create temporary file");
+        // Acquérir un verrou exclusif sur le fichier pour éviter les écritures concurrentes
+        if (!flock($h['fh'], LOCK_EX)) {
+            throw new RuntimeException("Unable to acquire file lock for compaction");
         }
 
-        // New index with updated offsets
-        $newIndex = [];
-        $currentOffset = 0;
+        try {
+            $oldSize = filesize($h['dataFile']);
+            $tempFile = $h['dataFile'] . '.tmp';
+            $tempFh = fopen($tempFile, 'wb');
 
-        // Copy only the referenced data
-        foreach ($h['index'] as $key => $meta) {
-            // Read data from the old file
-            fseek($h['fh'], $meta['offset']);
-            $data = fread($h['fh'], $meta['length']);
+            if (!$tempFh) {
+                throw new RuntimeException("Unable to create temporary file for compaction");
+            }
 
-            // Write to the new temporary file
-            fwrite($tempFh, $data);
+            $newIndex = [];
+            $currentOffset = 0;
 
-            // Update the index with the new offset
-            $newIndex[$key] = [
-                'offset' => $currentOffset,
-                'length' => $meta['length']
+            // Copier uniquement les entrées encore valides
+            foreach ($h['index'] as $key => $meta) {
+                fseek($h['fh'], $meta['offset']);
+                $data = fread($h['fh'], $meta['length']);
+
+                if ($data === false || strlen($data) !== $meta['length']) {
+                    throw new RuntimeException("Failed to read data for key '$key' during compaction");
+                }
+
+                fwrite($tempFh, $data);
+
+                // Mettre à jour l'index avec l'offset dans le nouveau fichier
+                $newIndex[$key] = [
+                    'offset' => $currentOffset,
+                    'length' => $meta['length'],
+                    'created_at' => $meta['created_at'] ?? time(),
+                    'expires_at' => $meta['expires_at'] ?? null
+                ];
+
+                $currentOffset += $meta['length'];
+            }
+
+            fclose($tempFh);
+            fclose($h['fh']);
+
+            // Remplacement atomique du fichier .dat
+            if (!rename($tempFile, $h['dataFile'])) {
+                throw new RuntimeException("Unable to replace data file with compacted file");
+            }
+
+            // Réouvrir le fichier pour les opérations futures
+            $h['fh'] = fopen($h['dataFile'], 'c+b');
+            if (!$h['fh']) {
+                throw new RuntimeException("Unable to reopen data file after compaction");
+            }
+
+            // Mettre à jour l'index en mémoire
+            $h['index'] = $newIndex;
+
+            // Sauvegarder l'index sur le disque
+            $this->saveIndex($name);
+
+            $newSize = filesize($h['dataFile']);
+
+            return [
+                'old_size' => $oldSize,
+                'new_size' => $newSize,
+                'saved' => $oldSize - $newSize,
+                'saved_percent' => $oldSize > 0 ? round((($oldSize - $newSize) / $oldSize) * 100, 2) : 0
             ];
-
-            $currentOffset += $meta['length'];
+        } finally {
+            // Déverrouiller le fichier même en cas d'exception
+            if (is_resource($h['fh'])) {
+                flock($h['fh'], LOCK_UN);
+            }
         }
-
-        // Close files
-        fclose($tempFh);
-        fclose($h['fh']);
-
-        // Replace old data file with new compacted file
-        if (!rename($tempFile, $h['dataFile'])) {
-            throw new RuntimeException("Unable to replace data file with compacted file");
-        }
-
-        // Reopen the data file
-        $h['fh'] = fopen($h['dataFile'], 'c+b');
-        if (!$h['fh']) {
-            throw new RuntimeException("Unable to reopen data file");
-        }
-
-        // Update the in-memory index
-        $h['index'] = $newIndex;
-
-        // Persist the updated index
-        $this->saveIndex($name);
-
-        // Measure size after compaction
-        $newSize = filesize($h['dataFile']);
-
-        return [
-            'old_size' => $oldSize,
-            'new_size' => $newSize,
-            'saved' => $oldSize - $newSize,
-            'saved_percent' => round((($oldSize - $newSize) / $oldSize) * 100, 2)
-        ];
     }
+
 
     /**
      * Removes expired entries from a store.
